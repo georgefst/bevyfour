@@ -10,15 +10,13 @@ use bevy::{
 };
 
 use crate::{
-    board::{is_incomplete, Board, GameState},
-    input::handle_input,
-    render::{render_board, spawn_board},
+    core::{Board, GameState, SelectedColumn},
+    system::{handle_input, is_incomplete, render_board, render_cursor, spawn_board},
 };
-mod board;
-mod input;
-mod render;
 
-// global constants
+pub mod core;
+pub mod system;
+
 pub const BOARDWIDTH: usize = 7;
 pub const BOARDHEIGHT: usize = 6;
 pub const WIDTHRANGE: Range<usize> = 0..BOARDWIDTH;
@@ -29,7 +27,11 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .insert_state(GameState::default())
         .insert_resource(Board::default())
+        .insert_resource(SelectedColumn::default())
         .add_systems(Startup, spawn_board)
-        .add_systems(Update, (handle_input.run_if(is_incomplete), render_board))
+        .add_systems(
+            Update,
+            (handle_input.run_if(is_incomplete), render_board, render_cursor),
+        )
         .run();
 }

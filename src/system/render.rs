@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::{
     asset::Assets,
     camera::Camera2d,
@@ -6,18 +8,25 @@ use bevy::{
         query::With,
         system::{Commands, Query, Res, ResMut},
     },
-    math::primitives::Circle,
+    math::{
+        primitives::{Circle, RegularPolygon},
+        Quat,
+    },
     mesh::{Mesh, Mesh2d},
     sprite_render::{ColorMaterial, MeshMaterial2d},
+    state::state::State,
     transform::components::Transform,
 };
 
 use crate::{
-    board::{Board, BoardCell, CellMaterial, Player, Point2, Position},
-    BOARDHEIGHT as BH, BOARDWIDTH as BW,
+    core::{
+        traits::{Idx1, Idx2},
+        Board, BoardCell, CellMaterial, Cursor, GameState, Player, Position,
+        SelectedColumn,
+    },
+    p2, BOARDHEIGHT as BH, BOARDWIDTH as BW,
 };
 
-// render constants
 const CELL_SIZE: f32 = 80.0;
 const X_OFF: f32 = 6.0;
 const Y_OFF: f32 = 5.0;
@@ -47,11 +56,24 @@ pub fn spawn_board(
                 MeshMaterial2d(mat.clone()),
                 Transform::from_xyz(fx, fy, 0.0),
                 BoardCell,
-                Position(Point2 { x, y }),
+                Position(p2!(x, y)),
                 CellMaterial(mat),
             ));
         }
     }
+
+    let triangle = meshes.add(RegularPolygon::new(CELL_SIZE / 3.0, 3));
+    let cursor_mat = materials.add(ColorMaterial::from_color(RED));
+    let cursor_x = x_off + (BW / 2) as f32 * CELL_SIZE;
+    let cursor_y = (Y_OFF * CELL_SIZE) / 2.0 + CELL_SIZE;
+
+    commands.spawn((
+        Mesh2d(triangle),
+        MeshMaterial2d(cursor_mat.clone()),
+        Transform::from_xyz(cursor_x, cursor_y, 0.0).with_rotation(Quat::from_rotation_z(PI)),
+        Cursor,
+        CellMaterial(cursor_mat),
+    ));
 }
 
 pub fn render_board(
@@ -60,10 +82,32 @@ pub fn render_board(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for (pos, cell_mat) in &mut query {
-        materials.get_mut(&cell_mat.0).expect("idk").color = match board[pos.p()] {
+        materials.get_mut(&cell_mat.0).expect("idk").color = match board[*pos.point()] {
             Some(Player::One) => RED,
             Some(Player::Two) => YELLOW,
             _ => GREY,
         };
+    }
+}
+
+pub fn render_cursor(
+    selected: Res<SelectedColumn>,
+    state: Res<State<GameState>>,
+    mut query: Query<(&mut Transform, &CellMaterial), With<Cursor>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    let x_off = -(X_OFF * CELL_SIZE) / 2.0;
+    let color = match state.get() {
+        GameState::Incomplete(Player::One) => RED,
+        GameState::Incomplete(Player::Two) => YELLOW,
+        _ => GREY,
+    };
+
+    for (mut transform, cell_mat) in &mut query {
+        transform.translation.x = x_off + selected.idx() as f32 * CELL_SIZE;
+        materials
+            .get_mut(&cell_mat.0)
+            .expect("cursor material")
+            .color = color;
     }
 }
