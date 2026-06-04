@@ -29,7 +29,6 @@ pub fn validate(board: &Board) -> Option<Player> {
 
 fn match_ray(board: &Board, ray: impl Iterator<Item = PointC4>) -> Option<Player> {
     match ray.fold((Player::None, 0, 0), |(prev, cons, max), p| {
-        println!("{p:?}");
         if let Some(player) = board[p] {
             if player == prev {
                 (player, cons + 1, max.max(cons + 1))
