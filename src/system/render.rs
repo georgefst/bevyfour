@@ -20,8 +20,7 @@ use bevy::{
 
 use crate::{
     core::{
-        traits::{Idx1, Idx2},
-        Board, BoardCell, CellMaterial, Cursor, GameState, Player, Position,
+        traits::BoundedIndex, Board, BoardCell, CellMaterial, Cursor, GameState, Player, Position,
         SelectedColumn,
     },
     p2, BOARDHEIGHT as BH, BOARDWIDTH as BW,
@@ -104,7 +103,7 @@ pub fn render_cursor(
     };
 
     for (mut transform, cell_mat) in &mut query {
-        transform.translation.x = x_off + selected.idx() as f32 * CELL_SIZE;
+        transform.translation.x = x_off + selected.value() as f32 * CELL_SIZE;
         materials
             .get_mut(&cell_mat.0)
             .expect("cursor material")

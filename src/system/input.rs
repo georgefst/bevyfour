@@ -4,7 +4,7 @@ use bevy::{
     state::state::{NextState, State},
 };
 
-use crate::core::{traits::Idx1, Board, GameState, Ordinal, SelectedColumn};
+use crate::core::{traits::BoundedIndex, Board, GameState, Ordinal, SelectedColumn};
 
 use super::play::execute_drop;
 
@@ -20,12 +20,11 @@ pub fn handle_input(
         (KeyCode::ArrowRight, Ordinal::E),
     ]
     .into_iter()
-    .filter_map(|(k, o)| keys.just_pressed(k).then(|| o))
-    .for_each(|o| selected.shift(o));
-
-    let GameState::Incomplete(current_player) = *state.get() else {
-        return;
-    };
+    .for_each(|(k, o)| {
+        if keys.just_pressed(k) {
+            selected.shift(o);
+        }
+    });
 
     [
         KeyCode::Digit1,
@@ -38,10 +37,22 @@ pub fn handle_input(
     ]
     .into_iter()
     .enumerate()
-    .filter_map(|(i, k)| keys.just_pressed(k).then(|| i))
-    .for_each(|i| selected.set(i));
+    .for_each(|(i, k)| {
+        if keys.just_pressed(k) {
+            selected.set(i)
+        }
+    });
+
+    let GameState::Incomplete(current_player) = *state.get() else {
+        panic!("unreachable")
+    };
 
     if keys.just_pressed(KeyCode::Space) || keys.just_pressed(KeyCode::Enter) {
-        execute_drop(selected.idx(), &mut board, current_player, &mut next_state);
+        execute_drop(
+            selected.value(),
+            &mut board,
+            current_player,
+            &mut next_state,
+        );
     }
 }

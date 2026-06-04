@@ -2,7 +2,7 @@ use std::iter::successors;
 
 use smart_default::SmartDefault;
 
-use crate::{BOARDHEIGHT as BH, BOARDWIDTH as BW};
+use crate::{core::traits::BoundedIndex, BOARDWIDTH as BW};
 
 #[macro_export]
 macro_rules! p2 {
@@ -89,34 +89,6 @@ impl Player {
         } else {
             Self::One
         }
-    }
-}
-
-impl Column {
-    fn bounded(i: i32) -> Self {
-        Self(0.max(i).min(BW as i32) as usize)
-    }
-
-    pub fn try_shift(&self, ord: Ordinal) -> Option<Self> {
-        (0..BW).find_map(|i| (i as i32 == self.0 as i32 + ord.ydelta()).then_some(Self(i)))
-    }
-
-    pub fn shifted(&self, ord: Ordinal) -> Self {
-        Self::bounded(self.0 as i32 + ord.xdelta())
-    }
-}
-
-impl Row {
-    fn bounded(i: i32) -> Self {
-        Self(0.max(i).min(BH as i32) as usize)
-    }
-
-    pub fn try_shift(&self, ord: Ordinal) -> Option<Self> {
-        (0..BH).find_map(|i| (i as i32 == self.0 as i32 + ord.xdelta()).then_some(Self(i)))
-    }
-
-    pub fn shifted(&self, ord: Ordinal) -> Self {
-        Self::bounded(self.0 as i32 + ord.ydelta())
     }
 }
 

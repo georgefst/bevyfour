@@ -1,7 +1,7 @@
 use bevy::{ecs::resource::Resource, state::state::States};
 use smart_default::SmartDefault;
 
-use crate::{core::Column, BOARDHEIGHT as BH, BOARDWIDTH as BW};
+use crate::{BOARDHEIGHT as BH, BOARDWIDTH as BW};
 
 use super::r#type::Player;
 
@@ -13,8 +13,8 @@ pub enum GameState {
     Draw,
 }
 
-#[derive(Resource, SmartDefault, Clone)]
+#[derive(Resource, SmartDefault, Clone, Copy)]
 pub struct Board(pub [[Option<Player>; BH]; BW]);
 
-#[derive(Resource, SmartDefault)]
-pub struct SelectedColumn(#[default(Column(BW / 2))] pub Column);
+#[derive(Resource, SmartDefault, Clone, Copy)]
+pub struct SelectedColumn(#[default(BW / 2)] pub usize);
