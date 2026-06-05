@@ -12,7 +12,7 @@ pub trait BoundedIndex: Sized + Copy {
     fn delta(ord: Ordinal) -> i32;
 
     fn bounded(i: i32) -> Self {
-        Self::from_value(0.max(i).min(Self::BOUND as i32) as usize)
+        Self::from_value(0.max(i).min((Self::BOUND - 1) as i32) as usize)
     }
 
     fn try_shift(&self, ord: Ordinal) -> Option<Self> {
